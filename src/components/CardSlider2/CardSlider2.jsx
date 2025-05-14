@@ -1,5 +1,8 @@
-import { useEffect, useState, useRef } from "react";
+"use client";
 
+import { useEffect, useState, useRef } from "react";
+import { Hexagon } from "lucide-react";
+// import "./CardSlider2.css"
 const cards = [
   { id: 1, bgColor: "bg-amber-300", zIndex: 1, label: "111111111111" },
   { id: 2, bgColor: "bg-red-300", zIndex: 2, label: "2" },
@@ -15,29 +18,50 @@ const cards = [
   //   { id: 12, bgColor: "bg-yellow-300", zIndex: 12, label: "12" },
 ];
 
-const CardItem = ({ color, label, isActive, index, translateZ, onClick }) => {
-  // All cards have a fixed 30 degree rotation around Y axis
-  // Only the translateZ and scale change based on active state
-  //   const translateZ = isActive ? 50 : 0;
-  const scale = isActive ? 1 : 0.9;
-  const translateX = -index * 8; // Dịch chuyển theo chiều ngang để tạo chéo
-  const translateY = +index * 3;
+const CardItem = ({
+  color,
+  label,
+  isActive,
+  index,
+  translateZ,
+  onClick,
+  animationState,
+  animationDelay,
+}) => {
+  // Calculate scale based on animation state
+  let scale = isActive ? 1 : 0.96;
+
+  // Apply scale animation based on animation state
+  if (animationState === "ending") {
+    scale = isActive ? 1.05 : 1.01; // Start with larger scale when animation is ending
+  }
+
+  const translateX = -index * 8;
+  const translateY = +index * 4;
 
   return (
     <div
       onClick={onClick}
-      className={`w-[280px] h-[320px] ${color} flex items-center justify-center text-xl font-bold rounded-lg
-          shadow-lg flex-shrink-0 transition-all duration-300`}
+      className={`w-[230px] h-[280px] bg-gray-200/80 flex items-center justify-center text-xl font-bold rounded-lg
+      shadow-lg flex-shrink-0 ${
+        animationState === "ending" ? "card-bounce" : ""
+      }`}
       style={{
         transform: `rotateY(48deg) translateZ(${translateZ}px) scale(${scale})
-          translateX(${translateX}px) translateY(${translateY}px)
-          `,
+        translateX(${translateX}px) translateY(${translateY}px)`,
         transformStyle: "preserve-3d",
-        marginLeft: index === 0 ? "0" : "-200px", // 50% overlap (280px / 2 = 140px)
-        zIndex: isActive ? 10 : index, // Higher z-index for active cards
+        marginLeft: index === 0 ? "0" : "-150px",
+        zIndex: isActive ? 10 : index,
+        transition: `all ${
+          animationState === "ending" ? 300 : 150
+        }ms ${animationDelay}ms ${
+          animationState === "ending"
+            ? "cubic-bezier(0.34, 1.56, 0.64, 1)"
+            : "ease-out-in"
+        }`,
       }}
     >
-      {label}
+      <Hexagon className="w-32 h-32 text-blue-500" />
     </div>
   );
 };
@@ -49,23 +73,39 @@ const CardItemSelected = ({
   index,
   translateZ,
   onClick,
+  animationState,
+  animationDelay,
 }) => {
-  const scale = isActive ? 1 : 0.9;
-  const translateX = -200; // Dịch chuyển theo chiều ngang để tạo chéo
-  const translateY = +index * 3;
+  // Calculate scale based on animation state
+  let scale = isActive ? 1 : 0.96;
+
+  // Apply scale animation based on animation state
+  if (animationState === "ending") {
+    scale = isActive ? 1.1 : 1.02; // Start with larger scale when animation is ending
+  }
+
+  const translateX = -130;
+  const translateY = +index * 4;
 
   return (
     <div
       onClick={onClick}
-      className={`w-[280px] h-[320px] ${color} flex items-center justify-center text-xl font-bold rounded-lg
-          shadow-lg flex-shrink-0 transition-all duration-300`}
+      className={`w-[230px] h-[280px] bg-gray-200/90 flex items-center justify-center text-xl font-bold rounded-lg
+          shadow-lg flex-shrink-0`}
       style={{
         transform: `rotateY(48deg) translateZ(${translateZ}px) scale(${scale})
           translateX(${translateX}px) translateY(${translateY}px)
           `,
         transformStyle: "preserve-3d",
-        marginLeft: index === 0 ? "0" : "-200px", // 50% overlap (280px / 2 = 140px)
-        zIndex: isActive ? 10 : index, // Higher z-index for active cards
+        marginLeft: index === 0 ? "0" : "-150px",
+        zIndex: isActive ? 10 : index,
+        transition: `all ${
+          animationState === "ending" ? 300 : 150
+        }ms ${animationDelay}ms ${
+          animationState === "ending"
+            ? "cubic-bezier(0.34, 1.56, 0.64, 1)"
+            : "ease-out"
+        }`,
       }}
     >
       {label}
@@ -81,6 +121,9 @@ export default function CardSlider2() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [showControls, setShowControls] = useState(false);
   const [selected, setSelected] = useState(-1);
+  const [isDraggingState, setIsDraggingState] = useState(false);
+  const [animationState, setAnimationState] = useState("idle"); // "idle", "dragging", "ending"
+  const [animatingCards, setAnimatingCards] = useState([]);
 
   // Number of visible cards
   const visibleCards = cards.length;
@@ -90,6 +133,8 @@ export default function CardSlider2() {
     if (!sliderRef.current) return;
 
     isDragging.current = true;
+    setIsDraggingState(true);
+    setAnimationState("dragging");
     startX.current = e.clientX || e.touches[0].clientX;
     scrollLeft.current = sliderRef.current.scrollLeft;
 
@@ -109,15 +154,32 @@ export default function CardSlider2() {
     sliderRef.current.scrollLeft = scrollLeft.current - x;
   };
 
+  // Trigger end animation sequentially
+  const triggerEndAnimation = () => {
+    // Set animation state to "ending" to trigger the scale animation
+    setAnimationState("ending");
+
+    // Reset animation state after animation completes
+    setTimeout(() => {
+      setAnimationState("idle");
+    }, 500); // Allow time for all animations to complete
+  };
+
   // Handle mouse/touch up
   const handleDragEnd = () => {
+    if (!isDragging.current) return;
+
     isDragging.current = false;
+    setIsDraggingState(false);
 
     if (!sliderRef.current) return;
 
     // Restore cursor style
     sliderRef.current.style.cursor = "grab";
     sliderRef.current.style.scrollBehavior = "smooth";
+
+    // Trigger the end animation
+    triggerEndAnimation();
 
     // Snap to the nearest card
     const cardWidth = 280 + 32; // card width + margin
@@ -133,24 +195,12 @@ export default function CardSlider2() {
     sliderRef.current.scrollLeft = newIndex * cardWidth;
   };
 
-  // Navigate to a specific index
-  const navigateTo = (index) => {
-    if (!sliderRef.current) return;
-
-    const newIndex = Math.min(Math.max(index, 0), cards.length - visibleCards);
-    setActiveIndex(newIndex);
-
-    const cardWidth = 280 + 32; // card width + margin
-    sliderRef.current.scrollLeft = newIndex * cardWidth;
-  };
-
   const handleOnclick = (data) => {
     if (data.id === selected) {
-      setSelected(-1);
-      console.log(selected);
+      setSelected(0);
+    } else {
+      setSelected(data.id);
     }
-    setSelected(data.id);
-    console.log(data);
   };
 
   // Add event listeners
@@ -184,16 +234,25 @@ export default function CardSlider2() {
   const isCardActive = (index) => {
     return index >= activeIndex && index < activeIndex + visibleCards;
   };
+
   const calculatePosition = (index) => {
-    const baseOffset = 10;
+    const baseOffset = 13;
     const centerIndex = Math.floor(cards.length / 2);
-    console.log((index - centerIndex) * (baseOffset / 2));
     return (index - centerIndex) * (baseOffset / 2);
+  };
+
+  // Calculate animation delay based on card index and active index
+  const getAnimationDelay = (index) => {
+    // Calculate distance from active index
+    const distance = Math.abs(index - activeIndex);
+
+    // Cards closer to active index animate first
+    return distance * 50; // 50ms delay between each card
   };
 
   return (
     <div
-      className="w-full h-screen flex flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100"
+      className="w-full flex flex-col items-center justify-center from-gray-50 to-gray-100"
       onMouseEnter={() => setShowControls(true)}
       onMouseLeave={() => setShowControls(false)}
     >
@@ -208,21 +267,26 @@ export default function CardSlider2() {
             msOverflowStyle: "none",
             scrollBehavior: "smooth",
             transformStyle: "preserve-3d",
-            paddingLeft: "calc(50% - 240px)", // Center the first card
-            paddingRight: "calc(50% - 240px)", // Add space at the end
+            paddingLeft: "calc(50% - 70px)", // Center the first card
+            paddingRight: "calc(50% - 170px)", // Add space at the end
           }}
         >
           {/* Cards */}
           {cards.map((item, index) => {
+            const isActive = isCardActive(index);
+            const animationDelay = getAnimationDelay(index);
+
             return item.id !== selected ? (
               <CardItem
                 onClick={() => handleOnclick(item)}
                 key={item.id}
                 color={item.bgColor}
                 label={item.label}
-                isActive={isCardActive(index)}
+                isActive={isActive}
                 index={index}
                 translateZ={calculatePosition(index)}
+                animationState={animationState}
+                animationDelay={animationDelay}
               />
             ) : (
               <CardItemSelected
@@ -230,9 +294,11 @@ export default function CardSlider2() {
                 key={item.id}
                 color={item.bgColor}
                 label={item.label}
-                isActive={isCardActive(index)}
+                isActive={isActive}
                 index={index}
                 translateZ={calculatePosition(index)}
+                animationState={animationState}
+                animationDelay={animationDelay}
               />
             );
           })}

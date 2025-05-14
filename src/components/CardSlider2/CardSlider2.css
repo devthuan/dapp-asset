@@ -1,0 +1,32 @@
+/* styles.css */
+@keyframes beat-3 {
+
+    0%,
+    100% {
+        transform: translateX(5px) scale(1);
+    }
+
+    16% {
+        transform: translateX(5px) scale(1.1);
+    }
+
+    32% {
+        transform: translateX(5px) scale(1);
+    }
+
+    48% {
+        transform: translateX(5px) scale(1.08);
+    }
+
+    64% {
+        transform: translateX(5px) scale(1);
+    }
+
+    80% {
+        transform: translateX(5px) scale(1.05);
+    }
+}
+
+.card-bounce {
+    animation: beat-3 1s ease-in-out 1;
+}

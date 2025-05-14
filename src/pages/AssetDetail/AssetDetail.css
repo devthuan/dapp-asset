@@ -1,0 +1,198 @@
+.asset-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(129, 129, 129, 0.4);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: stretch; 
+}
+
+.asset-modal-content {
+  background: white;
+  width: 100%;
+  max-width: 680px;
+  height: 100%;
+  padding-left: 30px;
+  /* border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.08); */
+  font-family: "Inter", sans-serif;
+  animation: slideUp 0.35s ease-out forwards;
+  position: relative;
+}
+
+.close-button {
+  position: absolute;
+  top: 16px;
+  left: 20px;  
+  background: transparent;
+  border: none;
+  font-size: 24px;  
+  color: #272728;
+  cursor: pointer;
+}
+.asset-modal-content.slide-down {
+  animation: slideDown 0.3s ease-in forwards;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes slideDown {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+.asset-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;     
+  gap: 20px;    
+  height: max-content;          
+}
+
+.asset-info {
+  flex: 1;
+  max-width: 180px;
+  overflow-y: auto;
+}
+
+.asset-info h2 {
+  font-size: 28px;
+  margin-bottom: 16px;
+  color: #111;
+}
+
+.asset-tittle {
+  font-size: 32px;  
+  font-weight: normal;  
+  color: #111;  
+  margin-bottom: 0px;
+}
+
+.asset-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.meta-item {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid #e4dfdf;
+  padding-bottom: 10px;
+}
+
+.meta-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: #888;
+  letter-spacing: 0.5px;
+}
+
+.meta-value {
+  font-size: 16px;
+  font-weight: 500;
+  color: #222;
+  margin-top: 4px;
+}
+
+.asset-image-wrapper {
+  flex: 1;
+  display: flex;
+  justify-content: center;  /* Căn giữa hình ảnh */
+  align-items: center;      /* Căn giữa theo chiều dọc */
+  margin-bottom: 160px;      
+}
+
+.asset-image {
+  max-width: 100%;
+  width: 100%;
+  max-height: 100%;          
+  object-fit: contain;  
+  background-color: transparent;      
+  border-radius: 16px;
+}
+.action-buttons {
+  display: flex;
+  justify-content: center; /* Căn giữa các nút */
+  gap: 40px;
+  width: 100%;
+}
+
+.edit-button,
+.delete-button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  width: 100px;
+  font-weight: 500;
+  font-size: 16px;
+  font-family: "Inter", sans-serif;
+  white-space: nowrap;
+  transition: background-color 0.2s ease;
+}
+
+.edit-button {
+  background-color: #eaeaea;
+  color: #111;
+}
+
+.edit-button:hover {
+  background-color: #d2d1d1;
+}
+
+.delete-button {
+  background-color: #000;
+  color: #fff;
+}
+
+.delete-button:hover {
+  background-color: #413f3f;
+}
+
+.gradient-text {
+  background: linear-gradient(90deg, #7f7fd5, #86a8e7, #91eae4);  /* tím nhạt -> hồng */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+  font-weight: medium;
+  font-size: 22px;
+}
+
+.header {
+  margin-bottom: 70px;
+  margin-top: 90px;
+  text-align: center;
+}
+
+.image-card {
+  width: 70px;               
+  height: 140px;
+  border-radius: 50px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-family: "Inter", sans-serif;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  padding: 8px;
+  background: white;  
+  position: relative;           
+  z-index: 1;
+  overflow: hidden; 
+  margin-top: 20px;
+  margin-bottom: 40px;    
+}

@@ -21,12 +21,15 @@
     "customize-cra": "^1.0.0",
     "gsap": "^3.13.0",
     "lucide-react": "^0.503.0",
+    "motion": "^12.11.0",
     "normalize.css": "^8.0.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-redux": "^9.2.0",
     "react-router": "^7.5.3",
-    "tailwind-merge": "^3.2.0"
+    "react-router-dom": "^7.6.0",
+    "tailwind-merge": "^3.2.0",
+    "web3": "^4.16.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",

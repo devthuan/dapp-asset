@@ -1,4 +1,6 @@
 import { useEffect, useState, useRef } from "react";
+import "./CardSlider.css"
+
 
 const cards = [
   { id: 1, bgColor: "bg-amber-300", zIndex: 1, label: "111111111111" },
@@ -16,12 +18,14 @@ const cards = [
 ];
 
 
-
-
-const CardItem = ({ color, label, isActive, index, translateZ }) => {
-  // All cards have a fixed 30 degree rotation around Y axis
-  // Only the translateZ and scale change based on active state
-//   const translateZ = isActive ? 50 : 0;
+const CardItem = ({
+  color,
+  label,
+  isActive,
+  index,
+  translateZ,
+  isDragging,
+}) => {
   const scale = isActive ? 1 : 0.9;
   const translateX = -index * 8; // Dịch chuyển theo chiều ngang để tạo chéo
   const translateY = +index * 3;
@@ -29,17 +33,24 @@ const CardItem = ({ color, label, isActive, index, translateZ }) => {
   return (
     <div
       className={`w-[280px] h-[320px] ${color} flex items-center justify-center text-xl font-bold rounded-lg
-         shadow-lg flex-shrink-0 transition-all duration-300`}
+         shadow-lg flex-shrink-0 transition-all duration-300
+         ${!isDragging ? "floating" : ""}
+         `}
       style={{
         transform: `rotateY(48deg) translateZ(${translateZ}px) scale(${scale})
-        translateX(${translateX}px) translateY(${translateY}px)
-        `,
+          translateX(${translateX}px) translateY(${translateY}px)`,
         transformStyle: "preserve-3d",
-        marginLeft: index === 0 ? "0" : "-200px", // 50% overlap (280px / 2 = 140px)
-        zIndex: isActive ? 10 : index, // Higher z-index for active cards
+        marginLeft: index === 0 ? "0" : "-200px",
+        zIndex: isActive ? 10 : index,
       }}
     >
-      {label}
+      <div
+        className={`w-full h-full flex items-center justify-center ${
+          !isDragging ? "floating" : ""
+        }`}
+      >
+        {label}
+      </div>
     </div>
   );
 };
@@ -51,6 +62,8 @@ export default function CardSlider() {
   const scrollLeft = useRef(0);
   const [activeIndex, setActiveIndex] = useState(0);
   const [showControls, setShowControls] = useState(false);
+   const isDraggingRef = useRef(false);
+  const [isDraggingState, setIsDraggingState] = useState(false);
 
   // Number of visible cards
   const visibleCards = cards.length;
@@ -58,6 +71,9 @@ export default function CardSlider() {
   // Handle mouse/touch down
   const handleDragStart = (e) => {
     if (!sliderRef.current) return;
+
+    isDraggingRef.current = true;
+    setIsDraggingState(true);
 
     isDragging.current = true;
     startX.current = e.clientX || e.touches[0].clientX;
@@ -85,6 +101,10 @@ export default function CardSlider() {
 
     if (!sliderRef.current) return;
 
+    isDraggingRef.current = false;
+    setIsDraggingState(false);
+
+
     // Restore cursor style
     sliderRef.current.style.cursor = "grab";
     sliderRef.current.style.scrollBehavior = "smooth";
@@ -93,6 +113,8 @@ export default function CardSlider() {
     const cardWidth = 280 + 32; // card width + margin
     const scrollPosition = sliderRef.current.scrollLeft;
     const newIndex = Math.round(scrollPosition / cardWidth);
+
+ 
 
     // Update active index
     setActiveIndex(
@@ -103,27 +125,6 @@ export default function CardSlider() {
     sliderRef.current.scrollLeft = newIndex * cardWidth;
   };
 
-  // Navigate to a specific index
-  const navigateTo = (index) => {
-    if (!sliderRef.current) return;
-
-    const newIndex = Math.min(Math.max(index, 0), cards.length - visibleCards);
-    console.log(newIndex);
-    setActiveIndex(newIndex);
-
-    const cardWidth = 280 + 32; // card width + margin
-    sliderRef.current.scrollLeft = newIndex * cardWidth;
-  };
-
-  // Navigate to previous set of cards
-  const navigatePrev = () => {
-    navigateTo(activeIndex - 1);
-  };
-
-  // Navigate to next set of cards
-  const navigateNext = () => {
-    navigateTo(activeIndex + 1);
-  };
 
   // Add event listeners
   useEffect(() => {
@@ -159,7 +160,6 @@ export default function CardSlider() {
   const calculatePosition = (index) => {
     const baseOffset = 10;
     const centerIndex = Math.floor(cards.length / 2);
-    console.log((index - centerIndex) * (baseOffset / 2));
     return (index - centerIndex) * (baseOffset / 2);
   };
 
@@ -170,34 +170,6 @@ export default function CardSlider() {
       onMouseLeave={() => setShowControls(false)}
     >
       <div className="relative w-full max-w-[1500px] overflow-hidden">
-        {/* Left navigation button */}
-
-        {/* <button
-          className={`absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full p-3 shadow-md transition-opacity ${
-            activeIndex <= 0
-              ? "opacity-30 cursor-not-allowed"
-              : "opacity-80 hover:opacity-100"
-          } ${
-            showControls || activeIndex > 0 ? "sm:opacity-80" : "sm:opacity-0"
-          }`}
-          onClick={navigatePrev}
-          disabled={activeIndex <= 0}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="m15 18-6-6 6-6" />
-          </svg>
-        </button> */}
-
         {/* Card slider */}
         <div
           ref={sliderRef}
@@ -221,58 +193,11 @@ export default function CardSlider() {
               isActive={isCardActive(index)}
               index={index}
               translateZ={calculatePosition(index)}
+              isDragging={isDraggingState}
             />
           ))}
         </div>
-
-        {/* Right navigation button */}
-        {/* <button
-          className={`absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/80 rounded-full p-3 shadow-md transition-opacity ${
-            activeIndex >= cards.length - visibleCards
-              ? "opacity-30 cursor-not-allowed"
-              : "opacity-80 hover:opacity-100"
-          } ${
-            showControls || activeIndex < cards.length - visibleCards
-              ? "sm:opacity-80"
-              : "sm:opacity-0"
-          }`}
-          onClick={navigateNext}
-          disabled={activeIndex >= cards.length - visibleCards}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="m9 18 6-6-6-6" />
-          </svg>
-        </button> */}
-
-
       </div>
-
-      {/* Pagination indicators */}
-      {/* <div className="flex justify-center mt-6 gap-2">
-        {Array.from({ length: cards.length - visibleCards + 1 }).map(
-          (_, index) => (
-            <button
-              key={index}
-              className={`w-2.5 h-2.5 rounded-full transition-all ${
-                activeIndex === index
-                  ? "bg-gray-800 w-6"
-                  : "bg-gray-300 hover:bg-gray-400"
-              }`}
-              onClick={() => navigateTo(index)}
-            />
-          )
-        )}
-      </div> */}
     </div>
   );
 }
