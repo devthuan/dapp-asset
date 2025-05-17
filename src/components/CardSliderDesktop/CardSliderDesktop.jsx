@@ -139,13 +139,7 @@ const CardItemSelected = ({
         transformStyle: "preserve-3d",
         marginLeft: index === 0 ? "0" : "-150px",
         zIndex: isActive ? 10 : index,
-        // transition: `all ${
-        //   animationState === "ending" ? 300 : 150
-        // }ms ${animationDelay}ms ${
-        //   animationState === "ending"
-        //     ? "cubic-bezier(0.34, 1.56, 0.64, 1)"
-        //     : "ease-out"
-        // }`,
+       
       }}
     >
       {waterEffect && isActive && (
@@ -281,7 +275,6 @@ export default function CardSliderDesktop({ data, reloadAssets, onClick }) {
 
     dispatch(initId({id: data.id}))
     
-    setSelected(data.id);
     // navigate("/detail");
   };
 
@@ -381,8 +374,20 @@ export default function CardSliderDesktop({ data, reloadAssets, onClick }) {
             const isActive = isCardActive(index);
             const animationDelay = getAnimationDelay(index);
 
-            return (
+            return item.id !== selected ? (
               <CardItem
+                asset={item}
+                onClick={() => handleOnclick(item)}
+                key={item.id}
+                isActive={isActive}
+                index={index}
+                translateZ={calculatePosition(index)}
+                animationState={animationState}
+                animationDelay={animationDelay}
+                waterEffect={waterEffect}
+              />
+            ) : (
+              <CardItemSelected
                 asset={item}
                 onClick={() => handleOnclick(item)}
                 key={item.id}

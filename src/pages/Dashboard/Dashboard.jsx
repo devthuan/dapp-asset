@@ -14,8 +14,12 @@ import CardSlider2 from "@/components/CardSlider2/CardSlider2";
 import CardSliderDesktop from "@/components/CardSliderDesktop/CardSliderDesktop";
 import AssetDetail from "../AssetDetail/AssetDetail";
 import AssetDetailDesktop from "../AssetDetail/AssetDetailDesktop";
+import { useSelector } from "react-redux";
 
 function Dashboard() {
+
+  const assetId = useSelector((state) => state.asset.id);
+
   const [assets, setAssets] = useState([]);
   const { web3, account, privateKey } = useContext(WalletContext);
   const [showForm, setShowForm] = useState(false);
@@ -155,13 +159,13 @@ function Dashboard() {
       {/* desktop */}
       <div className="hidden md:block w-[1180px] mx-auto ">
         <div className="grid grid-cols-2 gap-2 px-4 py-3  ">
-          <div className="w-full h-[540px] bg-gray-300 rounded-xl">
-            <AssetDetailDesktop />
+          <div className="w-full h-[470px] bg-gray-300 rounded-xl">
+            <AssetDetailDesktop id={assetId} />
           </div>
-          <div className="w-full h-[540px] bg-gray-300 rounded-xl"></div>
+          <div className="w-full h-[470px] bg-gray-300 rounded-xl"></div>
         </div>
         <div className=" grid grid-rows-1 px-4">
-          <div className="w-full h-[380px] bg-gray-300 rounded-xl">
+          <div className="w-full h-[350px] bg-gray-300 rounded-xl">
             <CardSliderDesktop
               data={assets}
               reloadAssets={fetchAssets}
