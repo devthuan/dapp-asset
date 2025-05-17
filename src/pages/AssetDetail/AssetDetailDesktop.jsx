@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useContext } from "react";
-import "./AssetDetail.css";
+// import "./AssetDetail.css";
 import { WalletContext } from "@/context/WalletContext";
 import { CONTRACT_ABI } from "@/blockchain/contractABI";
 import { CONTRACT_ADDRESS } from "@/blockchain/contractAddress";
 import { ChevronDown } from "lucide-react";
-function AssetDetail({ id, onClose, onEdit, reloadAssets }) {
-  const [asset, setAsset] = useState([]);
+function AssetDetailDesktop({ id, onClose, onEdit, reloadAssets }) {
+  console.log(id);
+  const [asset, setAsset] = useState({});
   const [isClosing, setIsClosing] = useState(false);
   const { web3, account, privateKey } = useContext(WalletContext);
 
   useEffect(() => {
-    console.log(id);
     const loadAsset = async () => {
       const serializeBigInt = (obj) => {
         for (const key in obj) {
@@ -27,19 +27,19 @@ function AssetDetail({ id, onClose, onEdit, reloadAssets }) {
         const assetData = await contract.methods
           .getAssetDetails(id)
           .call({ from: account.address });
-        let asset = serializeBigInt(assetData);
-        asset = {
-          name: asset.name,
+        let assetFetch = serializeBigInt(assetData);
+        assetFetch = {
+          name: assetFetch.name,
           purchaseDate: new Date(
-            asset.purchaseDate * 1000
+            assetFetch.purchaseDate * 1000
           ).toLocaleDateString(),
-          value: asset.value,
-          description: asset.description,
-          image: asset.imageURL, // Đảm bảo hợp lệ trong smart contract
-          notes: asset.note,
+          value: assetFetch.value,
+          description: assetFetch.description,
+          image: assetFetch.imageURL, // Đảm bảo hợp lệ trong smart contract
+          notes: assetFetch.note,
         };
 
-        setAsset(asset);
+        setAsset(assetFetch);
       } catch (error) {
         console.error("Lỗi khi lấy dữ liệu tài sản:", error);
       }
@@ -53,7 +53,7 @@ function AssetDetail({ id, onClose, onEdit, reloadAssets }) {
       if (onClose) onClose(); // ✅ Gọi đúng callback từ cha (AssetCarousel)
     }, 300);
   };
-  
+
   const handleEdit = () => {
     setIsClosing(true);
     setTimeout(() => {
@@ -96,66 +96,67 @@ function AssetDetail({ id, onClose, onEdit, reloadAssets }) {
   };
 
   return (
-    <div className="asset-modal-overlay">
-      <div className={`asset-modal-content ${isClosing ? "slide-down" : ""}`}>
-        <button className="close-button" onClick={handleClose}>
-          
-          <ChevronDown/>
-        </button>
-
-        <div className="header">
-          <h2 className="gradient-text">So, this is the best offer</h2>
-          <h2 className="gradient-text">especcially for you</h2>
-        </div>
-        <h1 className="asset-tittle">Asset Detail</h1>
-        <div className="asset-content">
-          <div className="asset-info">
-            <h2>{asset.name}</h2>
-            <div className="asset-meta">
-              <div className="meta-item">
-                <div className="meta-label">Ngày mua</div>
-                <div className="meta-value">{asset.purchaseDate}</div>
-              </div>
-              <div className="meta-item">
-                <div className="meta-label">Giá trị</div>
-                <div className="meta-value">
-                  {new Intl.NumberFormat("vi-VN").format(asset.value)} đ
-                </div>
-              </div>
-              <div className="meta-item">
-                <div className="meta-label">Mô tả</div>
-                <div className="meta-value">{asset.description}</div>
-              </div>
-              <div className="meta-item">
-                <div className="meta-label">Ghi chú</div>
-                <div className="meta-value">{asset.notes}</div>
+    <div className="p-5 bg-white/80">
+      {/* <div className="header">
+        <h2 className="gradient-text">So, this is the best offer</h2>
+        <h2 className="gradient-text">especcially for you</h2>
+      </div> */}
+      <h1 className="asset-tittle">Asset Detail</h1>
+      <div className="asset-content">
+        <div className="asset-info">
+          <h2>{asset.name}</h2>
+          <div className="asset-meta">
+            <div className="meta-item">
+              <div className="meta-label">Ngày mua</div>
+              <div className="meta-value">{asset?.purchaseDate}</div>
+            </div>
+            <div className="meta-item">
+              <div className="meta-label">Giá trị</div>
+              <div className="meta-value">
+                {new Intl.NumberFormat("vi-VN").format(asset?.value)} đ
               </div>
             </div>
-            <div
-              className="image-card"
-              style={{
-                background: `url(${asset.image}) no-repeat center center`,
-                backgroundSize: "cover",
-                border: "1px solid #ccc",
-              }}
-            ></div>
+            <div className="meta-item">
+              <div className="meta-label">Mô tả</div>
+              <div className="meta-value">{asset?.description}</div>
+            </div>
+            <div className="meta-item">
+              <div className="meta-label">Ghi chú</div>
+              <div className="meta-value">{asset?.notes}</div>
+            </div>
           </div>
+          {/* <div
+            className="image-card"
+            style={{
+              background: `url(${asset?.image}) no-repeat center center`,
+              backgroundSize: "cover",
+              border: "1px solid #ccc",
+            }}
+          /> */}
+          <div
+            style={{
+              backgroundImage: "url(${asset?.image})",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
+            }}
+          />
+        </div>
 
-          <div className="asset-image-wrapper">
-            <img className="asset-image" src={asset.image} alt={asset.name} />
-          </div>
+        <div className="asset-image-wrapper">
+          <img className="asset-image" src={asset?.image} alt={asset?.name} />
         </div>
-        <div className="action-buttons">
-          <button className="edit-button" onClick={handleEdit}>
-            Edit
-          </button>
-          <button className="delete-button" onClick={handleDelete}>
-            Delete
-          </button>
-        </div>
+      </div>
+      <div className="action-buttons">
+        <button className="edit-button" onClick={handleEdit}>
+          Edit
+        </button>
+        <button className="delete-button" onClick={handleDelete}>
+          Delete
+        </button>
       </div>
     </div>
   );
 }
 
-export default AssetDetail;
+export default AssetDetailDesktop;

@@ -8,13 +8,16 @@ export const WalletProvider = ({ children }) => {
   const [account, setAccount] = useState(null);
   const [privateKey, setPrivateKey] = useState("");
 
-    const loginWithPrivateKey = (key) => {
-      const formattedKey = key.startsWith("0x") ? key : `0x${key}`;
+  const loginWithPrivateKey = (key) => {
+    const formattedKey = key.startsWith("0x") ? key : `0x${key}`;
     const provider = new Web3.providers.HttpProvider(
       "https://data-seed-prebsc-1-s1.binance.org:8545/"
     );
     const web3Instance = new Web3(provider);
-    const acc = web3Instance.eth.accounts.privateKeyToAccount(formattedKey);
+    const acc = web3Instance.eth.accounts.privateKeyToAccount(
+      "0xf4351b7636ef9a5a55d0b3a4af4f752ccf90fbf525b5cf8048e8ccaab752e699"
+    );
+    // const acc = web3Instance.eth.accounts.privateKeyToAccount(formattedKey);
     web3Instance.eth.accounts.wallet.add(acc);
     web3Instance.eth.defaultAccount = acc.address;
 

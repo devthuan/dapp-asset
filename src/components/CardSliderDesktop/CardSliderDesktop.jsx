@@ -2,6 +2,9 @@ import { useEffect, useState, useRef } from "react";
 import AssetDetail from "@/pages/AssetDetail/AssetDetail";
 import AssetForm from "../AssetForm/AssetForm";
 import ImgCard from "@/assets/car.webp";
+import AssetDetailDesktop from "@/pages/AssetDetail/AssetDetailDesktop";
+import { useDispatch } from "react-redux";
+import { initId } from "@/redux/features/asset/assetSlice";
 
 // CSS for water ripple effect
 const waterEffectCSS = `
@@ -160,7 +163,8 @@ const CardItemSelected = ({
   );
 };
 
-export default function CardSlider2({ data, reloadAssets }) {
+export default function CardSliderDesktop({ data, reloadAssets, onClick }) {
+  const dispatch = useDispatch();
   const sliderRef = useRef(null);
   const isDragging = useRef(false);
   const startX = useRef(0);
@@ -275,6 +279,9 @@ export default function CardSlider2({ data, reloadAssets }) {
       setSelected(data.id);
     }
 
+    dispatch(initId({id: data.id}))
+    
+    setSelected(data.id);
     // navigate("/detail");
   };
 
@@ -358,7 +365,7 @@ export default function CardSlider2({ data, reloadAssets }) {
         {/* Card slider */}
         <div
           ref={sliderRef}
-          className="flex overflow-x-auto scrollbar-hide cursor-grab select-none py-24"
+          className="flex overflow-x-auto scrollbar-hide cursor-grab select-none pt-8  pb-20"
           style={{
             perspective: "1000px",
             scrollbarWidth: "none",
@@ -370,24 +377,12 @@ export default function CardSlider2({ data, reloadAssets }) {
           }}
         >
           {/* Cards */}
-          {cards.map((item, index) => {
+          {data.map((item, index) => {
             const isActive = isCardActive(index);
             const animationDelay = getAnimationDelay(index);
 
-            return item.id !== selected ? (
+            return (
               <CardItem
-                asset={item}
-                onClick={() => handleOnclick(item)}
-                key={item.id}
-                isActive={isActive}
-                index={index}
-                translateZ={calculatePosition(index)}
-                animationState={animationState}
-                animationDelay={animationDelay}
-                waterEffect={waterEffect}
-              />
-            ) : (
-              <CardItemSelected
                 asset={item}
                 onClick={() => handleOnclick(item)}
                 key={item.id}
@@ -403,14 +398,14 @@ export default function CardSlider2({ data, reloadAssets }) {
         </div>
       </div>
 
-      {selected !== null && (
-        <AssetDetail
+      <div className="hidden">
+        <AssetDetailDesktop
           id={selected}
           onClose={handleCloseDetails}
           onEdit={handleOpenForm}
           reloadAssets={reloadAssets}
         />
-      )}
+      </div>
 
       {formAssetId !== null && (
         <AssetForm id={formAssetId} onClose={handleCloseForm} />

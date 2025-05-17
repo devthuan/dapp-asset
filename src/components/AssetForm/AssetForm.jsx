@@ -102,9 +102,9 @@ function AssetForm({ id, onClose, reloadAssets }) {
             .addAsset(name, timestamp, value, description, imageURL, notes)
             .encodeABI();
 
-          var gas = await contract.methods
-            .addAsset(name, timestamp, value, description, imageURL, notes)
-            .estimateGas({ from: account.address });
+          // var gas = await contract.methods
+          //   .addAsset(name, timestamp, value, description, imageURL, notes)
+          //   .estimateGas({ from: account.address });
         }
 
         const tx = {
