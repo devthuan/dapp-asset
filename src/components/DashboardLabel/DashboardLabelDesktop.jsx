@@ -1,7 +1,7 @@
 import React from "react";
 import "./DashboardLabel.css";
 
-function DashboardLabel({ onAddClick }) {
+function DashboardLabelDesktop({ onAddClick }) {
   // const [showForm, setShowForm] = useState(false);
 
   // const handleAddClick = () => {
@@ -14,8 +14,8 @@ function DashboardLabel({ onAddClick }) {
 
   return (
     <>
-      <div className="dashboard-label">
-        <div className="bar-group flex">
+      <div className="dashboard-label-desktop">
+        <div className="bar-group">
           <div className="bar bar-long" />
           <div className="bar bar-short" />
         </div>
@@ -32,4 +32,4 @@ function DashboardLabel({ onAddClick }) {
   );
 }
 
-export default DashboardLabel;
+export default DashboardLabelDesktop;

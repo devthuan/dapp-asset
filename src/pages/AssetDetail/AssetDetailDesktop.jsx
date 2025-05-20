@@ -4,10 +4,20 @@ import { WalletContext } from "@/context/WalletContext";
 import { CONTRACT_ABI } from "@/blockchain/contractABI";
 import { CONTRACT_ADDRESS } from "@/blockchain/contractAddress";
 import { ChevronDown } from "lucide-react";
-function AssetDetailDesktop({ id, onClose, onEdit, reloadAssets }) {
-  console.log(id);
+import AssetForm from "@/components/AssetForm/AssetForm";
+// import AssetFormDesktop from "@/components/AssetForm/AssetFormDesktop";
+import { useDispatch, useSelector } from "react-redux";
+import { deleteAsset } from "@/redux/features/asset/assetSlice";
+function AssetDetailDesktop({ reloadAssets }) {
+  const dispatch = useDispatch();
+  const assetId = useSelector((state) => state.asset.id)?.id || 0;
+  const dataAssetById = useSelector((state) => state.asset.data).find(
+    (item) => item.id === assetId
+  );
   const [asset, setAsset] = useState({});
-  const [isClosing, setIsClosing] = useState(false);
+  // const [isClosing, setIsClosing] = useState(false);
+  // const [isCreate, setIsCreate] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   const { web3, account, privateKey } = useContext(WalletContext);
 
   useEffect(() => {
@@ -25,7 +35,7 @@ function AssetDetailDesktop({ id, onClose, onEdit, reloadAssets }) {
       try {
         const contract = new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
         const assetData = await contract.methods
-          .getAssetDetails(id)
+          .getAssetDetails(assetId)
           .call({ from: account.address });
         let assetFetch = serializeBigInt(assetData);
         assetFetch = {
@@ -45,21 +55,16 @@ function AssetDetailDesktop({ id, onClose, onEdit, reloadAssets }) {
       }
     };
     loadAsset();
-  }, [id, web3, account]);
-
-  const handleClose = () => {
-    setIsClosing(true);
-    setTimeout(() => {
-      if (onClose) onClose(); // ✅ Gọi đúng callback từ cha (AssetCarousel)
-    }, 300);
-  };
+  }, [assetId, web3, account]);
 
   const handleEdit = () => {
-    setIsClosing(true);
-    setTimeout(() => {
-      onClose();
-      onEdit(id);
-    }, 300);
+    console.log("Edit clicked");
+    setShowForm(true);
+  };
+
+  const handleFormClose = () => {
+    console.log("Form closing");
+    setShowForm(false);
   };
 
   const handleDelete = async () => {
@@ -69,12 +74,12 @@ function AssetDetailDesktop({ id, onClose, onEdit, reloadAssets }) {
       const contract = new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
       const gasPrice = await web3.eth.getGasPrice();
       const gasLimit = await contract.methods
-        .deleteAsset(id)
+        .deleteAsset(assetId)
         .estimateGas({ from: account.address });
 
       const tx = {
         to: CONTRACT_ADDRESS,
-        data: contract.methods.deleteAsset(id).encodeABI(),
+        data: contract.methods.deleteAsset(assetId).encodeABI(),
         gas: gasLimit,
         gasPrice: gasPrice,
         from: account.address,
@@ -85,10 +90,10 @@ function AssetDetailDesktop({ id, onClose, onEdit, reloadAssets }) {
         signedTx.rawTransaction
       );
 
+      dispatch(deleteAsset(assetId));
       console.log("Asset deleted successfully:", receipt);
       alert("Tài sản đã được xóa!");
-      reloadAssets?.();
-      handleClose();
+      // reloadAssets();
     } catch (error) {
       console.error("Lỗi khi xóa tài sản:", error);
       alert("Có lỗi xảy ra khi xóa tài sản.");
@@ -96,46 +101,35 @@ function AssetDetailDesktop({ id, onClose, onEdit, reloadAssets }) {
   };
 
   return (
-    <div className="p-5 bg-white/80">
-      {/* <div className="header">
-        <h2 className="gradient-text">So, this is the best offer</h2>
-        <h2 className="gradient-text">especcially for you</h2>
-      </div> */}
-      <h1 className="asset-tittle">Asset Detail</h1>
+    <div className="relative h-full p-5 bg-white/80">
+      <h2 className="py-5 text-[28px]">{dataAssetById?.name}</h2>
       <div className="asset-content">
         <div className="asset-info">
-          <h2>{asset.name}</h2>
           <div className="asset-meta">
             <div className="meta-item">
               <div className="meta-label">Ngày mua</div>
-              <div className="meta-value">{asset?.purchaseDate}</div>
+              <div className="meta-value">{dataAssetById?.purchaseDate}</div>
             </div>
             <div className="meta-item">
               <div className="meta-label">Giá trị</div>
               <div className="meta-value">
-                {new Intl.NumberFormat("vi-VN").format(asset?.value)} đ
+                {new Intl.NumberFormat("vi-VN").format(dataAssetById?.value)} đ
               </div>
             </div>
             <div className="meta-item">
               <div className="meta-label">Mô tả</div>
-              <div className="meta-value">{asset?.description}</div>
+              <div className="meta-value">{dataAssetById?.description}</div>
             </div>
             <div className="meta-item">
               <div className="meta-label">Ghi chú</div>
-              <div className="meta-value">{asset?.notes}</div>
+              <div className="meta-value">{dataAssetById?.note}</div>
             </div>
           </div>
-          {/* <div
-            className="image-card"
-            style={{
-              background: `url(${asset?.image}) no-repeat center center`,
-              backgroundSize: "cover",
-              border: "1px solid #ccc",
-            }}
-          /> */}
+
           <div
+            className="w-full h-40 "
             style={{
-              backgroundImage: "url(${asset?.image})",
+              backgroundImage: "url(${dataAssetById?.image})",
               backgroundSize: "cover",
               backgroundPosition: "center",
               backgroundRepeat: "no-repeat",
@@ -144,10 +138,14 @@ function AssetDetailDesktop({ id, onClose, onEdit, reloadAssets }) {
         </div>
 
         <div className="asset-image-wrapper">
-          <img className="asset-image" src={asset?.image} alt={asset?.name} />
+          <img
+            className="asset-image"
+            src={dataAssetById?.imageURL}
+            alt={dataAssetById?.name}
+          />
         </div>
       </div>
-      <div className="action-buttons">
+      <div className="absolute bottom-2 action-buttons">
         <button className="edit-button" onClick={handleEdit}>
           Edit
         </button>
@@ -155,6 +153,16 @@ function AssetDetailDesktop({ id, onClose, onEdit, reloadAssets }) {
           Delete
         </button>
       </div>
+
+      {showForm ? (
+        <AssetForm
+          id={assetId}
+          onClose={handleFormClose}
+          reloadAssets={reloadAssets}
+        />
+      ) : (
+        ""
+      )}
     </div>
   );
 }

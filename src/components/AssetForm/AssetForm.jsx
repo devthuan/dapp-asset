@@ -5,8 +5,15 @@ import "./AssetForm.css";
 import { WalletContext } from "@/context/WalletContext";
 import { CONTRACT_ABI } from "@/blockchain/contractABI";
 import { CONTRACT_ADDRESS } from "@/blockchain/contractAddress";
+import { useDispatch, useSelector } from "react-redux";
+import { updateAsset } from "@/redux/features/asset/assetSlice";
 
 function AssetForm({ id, onClose, reloadAssets }) {
+  const dispatch = useDispatch();
+  const assetId = useSelector((state) => state.asset.id)?.id || 0;
+  const dataAssetById = useSelector((state) => state.asset.data).find(
+    (item) => item.id === assetId
+  );
   const [name, setName] = useState("");
   const [purchaseDate, setPurchaseDate] = useState("");
   const [value, setValue] = useState("");
@@ -22,127 +29,137 @@ function AssetForm({ id, onClose, reloadAssets }) {
     "https://api.cloudinary.com/v1_1/dta5lkfxr/image/upload";
   const cloudinaryUploadPreset = "imageurl";
 
-    const serializeBigInt = (obj) => {
-      const result = {};
-      for (const key in obj) {
-        if (typeof obj[key] === "bigint") {
-          result[key] = obj[key].toString();
-        } else {
-          result[key] = obj[key];
-        }
+  const serializeBigInt = (obj) => {
+    const result = {};
+    for (const key in obj) {
+      if (typeof obj[key] === "bigint") {
+        result[key] = obj[key].toString();
+      } else {
+        result[key] = obj[key];
       }
-      return result;
-    };
+    }
+    return result;
+  };
 
-    useEffect(() => {
-      if (id != null && web3 && account) {
-        const loadAsset = async () => {
-          try {
-            const contract = new web3.eth.Contract(
-              CONTRACT_ABI,
-              CONTRACT_ADDRESS
-            );
-            const assetData = await contract.methods
-              .getAssetDetails(id)
-              .call({ from: account.address });
+  useEffect(() => {
+    if (id != null && web3 && account) {
+      const loadAsset = async () => {
+        try {
+          const contract = new web3.eth.Contract(
+            CONTRACT_ABI,
+            CONTRACT_ADDRESS
+          );
+          const assetData = await contract.methods
+            .getAssetDetails(id)
+            .call({ from: account.address });
 
-            let asset = serializeBigInt(assetData);
+          let asset = serializeBigInt(assetData);
 
-            setName(asset.name);
-            setPurchaseDate(
-              new Date(asset.purchaseDate * 1000).toISOString().split("T")[0] // đúng format YYYY-MM-DD
-            );
-            setValue(asset.value);
-            setDescription(asset.description);
-            setImage(asset.imageURL);
-            setNotes(asset.note);
-          } catch (error) {
-            console.error("Lỗi khi lấy dữ liệu tài sản:", error);
-          }
-        };
-        loadAsset();
-      }
-    }, [id, web3, account]);
-
-    const handleSubmit = async (e) => {
-      e.preventDefault();
-      try {
-        setLoading(true)
-        let imageURL = image;
-
-        if (image instanceof File) {
-          const formData = new FormData();
-          formData.append("file", image);
-          formData.append("upload_preset", cloudinaryUploadPreset);
-
-          const response = await fetch(cloudinaryUrl, {
-            method: "POST",
-            body: formData,
-          });
-
-          const cloudinaryResponse = await response.json();
-          imageURL = cloudinaryResponse.secure_url;
+          setName(asset.name);
+          setPurchaseDate(
+            new Date(asset.purchaseDate * 1000).toISOString().split("T")[0] // đúng format YYYY-MM-DD
+          );
+          setValue(asset.value);
+          setDescription(asset.description);
+          setImage(asset.imageURL);
+          setNotes(asset.note);
+        } catch (error) {
+          console.error("Lỗi khi lấy dữ liệu tài sản:", error);
         }
+      };
+      loadAsset();
+    }
+  }, [id, web3, account]);
 
-        const timestamp = Math.floor(new Date(purchaseDate).getTime() / 1000);
-        const contract = new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
-        const gasPrice = await web3.eth.getGasPrice();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      let imageURL = image;
 
-        let txData;
-        if (id != null) {
-          txData = contract.methods
-            .editAsset(id, name, timestamp, value, description, imageURL, notes)
-            .encodeABI();
+      if (image instanceof File) {
+        const formData = new FormData();
+        formData.append("file", image);
+        formData.append("upload_preset", cloudinaryUploadPreset);
 
-          var gas = await contract.methods
-            .editAsset(id, name, timestamp, value, description, imageURL, notes)
-            .estimateGas({ from: account.address });
-        } else {
-          txData = contract.methods
-            .addAsset(name, timestamp, value, description, imageURL, notes)
-            .encodeABI();
+        const response = await fetch(cloudinaryUrl, {
+          method: "POST",
+          body: formData,
+        });
 
-          // var gas = await contract.methods
-          //   .addAsset(name, timestamp, value, description, imageURL, notes)
-          //   .estimateGas({ from: account.address });
-        }
-
-        const tx = {
-          to: CONTRACT_ADDRESS,
-          data: txData,
-          gas,
-          gasPrice,
-          from: account.address,
-        };
-
-        const signed = await web3.eth.accounts.signTransaction(tx, privateKey);
-        const receipt = await web3.eth.sendSignedTransaction(
-          signed.rawTransaction
-        );
-
-        alert(
-          id != null
-            ? "Cập nhật tài sản thành công!"
-            : "Tạo tài sản thành công!"
-        );
-        setLoading(false);
-
-        console.log("Giao dịch:", receipt);
-      } catch (err) {
-        console.error(err);
-        alert("Có lỗi xảy ra khi gửi giao dịch.");
+        const cloudinaryResponse = await response.json();
+        imageURL = cloudinaryResponse.secure_url;
       }
 
-      reloadAssets?.();
-      triggerClose();
-    };
+      const timestamp = Math.floor(new Date(purchaseDate).getTime() / 1000);
+      const contract = new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
+      const gasPrice = await web3.eth.getGasPrice();
 
-    const triggerClose = () => {
-      setIsClosing(true);
-      setTimeout(() => {
-        onClose();
-      }, 300);
-    };
+      let txData;
+      if (id != null) {
+        txData = contract.methods
+          .editAsset(id, name, timestamp, value, description, imageURL, notes)
+          .encodeABI();
+
+        var gas = await contract.methods
+          .editAsset(id, name, timestamp, value, description, imageURL, notes)
+          .estimateGas({ from: account.address });
+      } else {
+        txData = contract.methods
+          .addAsset(name, timestamp, value, description, imageURL, notes)
+          .encodeABI();
+
+        // var gas = await contract.methods
+        //   .addAsset(name, timestamp, value, description, imageURL, notes)
+        //   .estimateGas({ from: account.address });
+      }
+
+      dispatch(
+        updateAsset({
+          id,
+          name,
+          timestamp,
+          value,
+          description,
+          imageURL,
+          notes,
+        })
+      );
+
+      const tx = {
+        to: CONTRACT_ADDRESS,
+        data: txData,
+        gas,
+        gasPrice,
+        from: account.address,
+      };
+
+      const signed = await web3.eth.accounts.signTransaction(tx, privateKey);
+      const receipt = await web3.eth.sendSignedTransaction(
+        signed.rawTransaction
+      );
+
+      alert(
+        id != null ? "Cập nhật tài sản thành công!" : "Tạo tài sản thành công!"
+      );
+      setLoading(false);
+
+      console.log("Giao dịch:", receipt);
+    } catch (err) {
+      console.error(err);
+      alert("Có lỗi xảy ra khi gửi giao dịch.");
+    }
+
+    reloadAssets?.();
+    triggerClose();
+  };
+
+  const triggerClose = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      onClose();
+    }, 300);
+  };
   return (
     <div className="asset-form-overlay">
       <form

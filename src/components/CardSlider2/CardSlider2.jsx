@@ -98,7 +98,7 @@ const CardItem = ({
         />
       )}
 
-      <img src={asset.imageURL} alt="" srcSet="" />
+      <img className="h-[200px]" src={asset.imageURL} alt="" srcSet="" />
     </div>
   );
 };
@@ -370,7 +370,7 @@ export default function CardSlider2({ data, reloadAssets }) {
           }}
         >
           {/* Cards */}
-          {cards.map((item, index) => {
+          {data.map((item, index) => {
             const isActive = isCardActive(index);
             const animationDelay = getAnimationDelay(index);
 

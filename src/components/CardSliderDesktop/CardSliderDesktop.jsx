@@ -3,8 +3,9 @@ import AssetDetail from "@/pages/AssetDetail/AssetDetail";
 import AssetForm from "../AssetForm/AssetForm";
 import ImgCard from "@/assets/car.webp";
 import AssetDetailDesktop from "@/pages/AssetDetail/AssetDetailDesktop";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { initId } from "@/redux/features/asset/assetSlice";
+// import AssetFormDesktop from "../AssetForm/AssetFormDesktop";
 
 // CSS for water ripple effect
 const waterEffectCSS = `
@@ -14,7 +15,7 @@ const waterEffectCSS = `
     opacity: 0.6;
   }
   50% {
-    transform: scale(1.15);
+    transform: scale(1.05);
     opacity: 0.4;
   }
   100% {
@@ -22,6 +23,8 @@ const waterEffectCSS = `
     opacity: 0;
   }
 }
+
+
 
 .water-ripple {
   position: absolute;
@@ -128,21 +131,40 @@ const CardItemSelected = ({
   const translateY = +index * 4;
 
   return (
-    <div
-      onClick={onClick}
-      className={`relative w-[230px] h-[280px] bg-gray-200/90 flex items-center justify-center text-xl font-bold rounded-lg
-          shadow-lg flex-shrink-0`}
-      style={{
-        transform: `rotateY(48deg) translateZ(${translateZ}px) scale(${scale})
-          translateX(${translateX}px) translateY(${translateY}px)
-          `,
-        transformStyle: "preserve-3d",
-        marginLeft: index === 0 ? "0" : "-150px",
-        zIndex: isActive ? 10 : index,
-       
-      }}
-    >
-      {waterEffect && isActive && (
+    <>
+      <style>{`
+    @keyframes move {
+      from { 
+        transform: 
+          rotateY(48deg) 
+          translateZ(0) 
+          scale(1) 
+          translateX(0) 
+          translateY(${translateY}px); 
+      }
+      to { 
+        transform: 
+          rotateY(48deg) 
+          translateZ(${translateZ}px) 
+          scale(${scale}) 
+          translateX(${translateX}px) 
+          translateY(${translateY}px); 
+      }
+    }
+  `}</style>
+
+      <div
+        onClick={onClick}
+        className={`relative w-[230px] h-[280px] bg-gray-200/90 flex items-center justify-center text-xl font-bold rounded-lg
+      shadow-lg flex-shrink-0`}
+        style={{
+          animation: "move 0.3s ease-in-out forwards", // Thêm forwards để giữ trạng thái cuối
+          transformStyle: "preserve-3d",
+          marginLeft: index === 0 ? "0" : "-150px",
+          zIndex: isActive ? 10 : index,
+        }}
+      >
+        {/* {waterEffect && isActive && (
         <div
           className="water-ripple absolute inset-0"
           style={{
@@ -151,14 +173,16 @@ const CardItemSelected = ({
             animationDelay: `${animationDelay}ms`,
           }}
         />
-      )}
-      <img src={asset.imageURL} alt="" srcset="" />
-    </div>
+      )} */}
+        <img src={asset.imageURL} alt="" srcSet="" />
+      </div>
+    </>
   );
 };
 
-export default function CardSliderDesktop({ data, reloadAssets, onClick }) {
+export default function CardSliderDesktop({ reloadAssets, onClick }) {
   const dispatch = useDispatch();
+  const dataAsset = useSelector((state) => state.asset.data);
   const sliderRef = useRef(null);
   const isDragging = useRef(false);
   const startX = useRef(0);
@@ -170,7 +194,6 @@ export default function CardSliderDesktop({ data, reloadAssets, onClick }) {
   const [animationState, setAnimationState] = useState("idle"); // "idle", "dragging", "ending"
   const [waterEffect, setWaterEffect] = useState(false);
   const [dragDistance, setDragDistance] = useState(0);
-  const [dataAsset, setDataAsset] = useState(data);
   const dragStartTime = useRef(0);
   const dragEndTime = useRef(0);
 
@@ -273,17 +296,8 @@ export default function CardSliderDesktop({ data, reloadAssets, onClick }) {
       setSelected(data.id);
     }
 
-    dispatch(initId({id: data.id}))
-    
-    // navigate("/detail");
+    dispatch(initId({ id: data.id }));
   };
-
-  // init data
-  useEffect(() => {
-    setDataAsset(data);
-
-    console.log(dataAsset);
-  }, []);
 
   // Add event listeners
   useEffect(() => {
@@ -370,7 +384,7 @@ export default function CardSliderDesktop({ data, reloadAssets, onClick }) {
           }}
         >
           {/* Cards */}
-          {data.map((item, index) => {
+          {dataAsset?.map((item, index) => {
             const isActive = isCardActive(index);
             const animationDelay = getAnimationDelay(index);
 
@@ -411,10 +425,6 @@ export default function CardSliderDesktop({ data, reloadAssets, onClick }) {
           reloadAssets={reloadAssets}
         />
       </div>
-
-      {formAssetId !== null && (
-        <AssetForm id={formAssetId} onClose={handleCloseForm} />
-      )}
     </div>
   );
 }

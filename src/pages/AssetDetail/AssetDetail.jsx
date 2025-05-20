@@ -4,7 +4,10 @@ import { WalletContext } from "@/context/WalletContext";
 import { CONTRACT_ABI } from "@/blockchain/contractABI";
 import { CONTRACT_ADDRESS } from "@/blockchain/contractAddress";
 import { ChevronDown } from "lucide-react";
+import { useDispatch } from "react-redux";
+import { deleteAsset } from "@/redux/features/asset/assetSlice";
 function AssetDetail({ id, onClose, onEdit, reloadAssets }) {
+  const dispatch = useDispatch();
   const [asset, setAsset] = useState([]);
   const [isClosing, setIsClosing] = useState(false);
   const { web3, account, privateKey } = useContext(WalletContext);
@@ -84,7 +87,7 @@ function AssetDetail({ id, onClose, onEdit, reloadAssets }) {
       const receipt = await web3.eth.sendSignedTransaction(
         signedTx.rawTransaction
       );
-
+      dispatch(deleteAsset(id));
       console.log("Asset deleted successfully:", receipt);
       alert("Tài sản đã được xóa!");
       reloadAssets?.();
